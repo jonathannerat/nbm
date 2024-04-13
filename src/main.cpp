@@ -1,30 +1,33 @@
 #include <string>
 #include <vector>
 
-#include "todos.hpp"
+#include "todo.hpp"
 
 int main(int argc, char **argv) {
-  std::vector<Todo> todos(load_todos());
+    std::vector<Todo> todos(load_todos());
 
-  if (argc == 1) {
-    print_todos(todos);
-  } else {
-    std::string_view command(argv[1]);
-
-    if (command == "add") {
-      Todo new_todo{argv[2], TodoStatus::PENDING};
-      todos.emplace_back(new_todo);
+    if (argc == 1) {
+        print_todos(todos);
     } else {
-      size_t idx = static_cast<size_t>(std::stoi(argv[2]));
-      if (command == "edit") {
-        todos[idx].summary = argv[3];
-      } else if (command == "done") {
-        todos[idx].status = TodoStatus::DONE;
-      } else if (command == "doing") {
-        todos[idx].status = TodoStatus::DOING;
-      }
-    }
+        std::string_view command(argv[1]);
 
-    save_todos(todos);
-  }
+        if (command == "add") {
+            add_todo(todos, argv[2]);
+        } else {
+            size_t id = static_cast<size_t>(std::stoi(argv[2]));
+            Todo &t = todos[id];
+
+            if (command == "remove") {
+                remove_todo(todos, id);
+            } else if (command == "edit") {
+                edit_todo(todos, id, argv[3]);
+            } else if (command == "done") {
+                mark_todo_done(todos, id);
+            } else if (command == "doing") {
+                mark_todo_doing(todos, id);
+            }
+        }
+
+        save_todos(todos);
+    }
 }
