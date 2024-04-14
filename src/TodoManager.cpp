@@ -67,17 +67,8 @@ void with_todo(std::vector<Todo> &todos, size_t search_id, std::function<void(To
 void TodoManager::edit(size_t id, std::string new_summary) {
     with_todo(_todos, id, [new_summary](Todo &t) { t.set_summary(new_summary); });
 }
-
-void TodoManager::mark_pending(size_t id) {
-    with_todo(_todos, id, [](Todo &t) { t.mark_pending(); });
-}
-
-void TodoManager::mark_started(size_t id) {
-    with_todo(_todos, id, [](Todo &t) { t.mark_started(); });
-}
-
-void TodoManager::mark_done(size_t id) {
-    with_todo(_todos, id, [](Todo &t) { t.mark_done(); });
+void TodoManager::set_status(size_t id, TodoStatus status) {
+    with_todo(_todos, id, [status](Todo &t) { t._status = status; });
 }
 
 std::string TodoManager::serialize(const Todo &todo) const {

@@ -1,5 +1,6 @@
+BasedOnStyle: Google
+ColumnLimit: 100
 IndentWidth: 4
+SortIncludes: CaseSensitive
 Standard: c++20
 UseTab: Never
-SortIncludes: CaseSensitive
-ColumnLimit: 100

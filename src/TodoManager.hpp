@@ -17,9 +17,7 @@ class TodoManager {
     void add(std::string);
     void remove(size_t);
     void edit(size_t, std::string);
-    void mark_pending(size_t);
-    void mark_started(size_t);
-    void mark_done(size_t);
+    void set_status(size_t, TodoStatus);
 
   private:
     std::string serialize(const Todo &) const;

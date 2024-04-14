@@ -18,14 +18,12 @@ class Todo {
   public:
     size_t id() const;
     std::string_view summary() const;
+    TodoStatus status() const;
     bool is_pending() const;
     bool is_started() const;
     bool is_done() const;
 
     void set_summary(std::string);
-    void mark_pending();
-    void mark_started();
-    void mark_done();
 
   private:
     friend class TodoManager;
