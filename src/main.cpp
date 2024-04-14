@@ -2,39 +2,37 @@
 #include <string>
 #include <vector>
 
-#include "todo.hpp"
+#include "TodoManager.hpp"
+
+#define TODOS "todos.txt"
 
 int main(int argc, char **argv) {
-    std::vector<Todo> todos = load_todos();
+    TodoManager tm(TODOS);
 
     if (argc == 1) {
-        print_todos(todos);
+        tm.list();
     } else {
         std::string_view command(argv[1]);
 
         if (command == "add") {
-            todos.emplace_back(Todo(argv[2]));
+            tm.add(argv[2]);
+        } else if (command == "remove") {
+            size_t remove_id = std::stoi(argv[2]);
+            tm.remove(remove_id);
         } else {
-            size_t id = static_cast<size_t>(std::stoi(argv[2]));
-            auto it = std::find_if(todos.begin(), todos.end(),
-                                   [id](const Todo &t) { return t.id() == id; });
+            size_t id = std::stoi(argv[2]);
 
-            if (it == todos.end()) {
-                std::cerr << "Couldn't find todo for id: " << id << std::endl;
-                exit(EXIT_FAILURE);
-            }
-
-            if (command == "remove") {
-                todos.erase(it);
-            } else if (command == "edit") {
-                it->set_summary(argv[3]);
+            if (command == "edit") {
+                tm.edit(id, argv[3]);
             } else if (command == "done") {
-                it->set_done();
+                tm.mark_done(id);
             } else if (command == "start") {
-                it->set_started();
+                tm.mark_started(id);
+            } else if (command == "pending") {
+                tm.mark_pending(id);
             }
         }
 
-        save_todos(todos);
+        tm.save();
     }
 }
