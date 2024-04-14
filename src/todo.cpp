@@ -1,38 +1,58 @@
 #include "todo.hpp"
+#include <sstream>
 
-std::istream &operator>>(std::istream &is, Todo &t) {
-    char c;
+static size_t global_id = 0;
 
-    is.get(c);
+Todo Todo::parse_line(std::string line) {
+    size_t sep_index = line.find(',');
+    size_t id = std::stoi(line.substr(0, sep_index));
+    TodoStatus status = (TodoStatus)line[sep_index + 1];
 
-    t.status = (c == ' '   ? TodoStatus::PENDING
-                : c == 'O' ? TodoStatus::DOING
-                           : TodoStatus::DONE);
+    if (id >= global_id) {
+        global_id = id + 1;
+    }
 
-    is >> c;
-
-    std::getline(is, t.summary);
-
-    return is;
+    return Todo(id, line.substr(sep_index + 3), status);
 }
 
-std::ostream &operator<<(std::ostream &os, const Todo &t) {
-    os << (t.status == TodoStatus::PENDING ? ' '
-           : t.status == TodoStatus::DOING ? 'O'
-                                           : 'X');
+Todo::Todo(size_t id, std::string summary, TodoStatus status)
+    : _id(id), _summary(summary), _status(status) {}
 
-    os << ',' << t.summary << '\n';
+Todo::Todo(std::string summary) : Todo(global_id++, summary, TodoStatus::PENDING) {}
 
-    return os;
+size_t Todo::id() const { return _id; }
+
+std::string_view Todo::summary() const { return _summary; }
+
+bool Todo::is_pending() const { return _status == TodoStatus::PENDING; }
+
+bool Todo::is_started() const { return _status == TodoStatus::STARTED; }
+
+bool Todo::is_done() const { return _status == TodoStatus::DONE; }
+
+void Todo::set_summary(std::string new_summary) { _summary = new_summary; }
+
+void Todo::set_pending() { _status = TodoStatus::PENDING; }
+
+void Todo::set_started() { _status = TodoStatus::STARTED; }
+
+void Todo::set_done() { _status = TodoStatus::DONE; }
+
+std::string Todo::dump() const {
+    std::stringstream ss;
+
+    ss << _id << ',' << (char)_status << ',' << _summary;
+
+    return ss.str();
 }
 
 std::vector<Todo> load_todos() {
     std::vector<Todo> todos;
     std::ifstream f(TODOS);
-    Todo t;
+    std::string line;
 
-    while (f >> t) {
-        todos.push_back(t);
+    while (std::getline(f, line)) {
+        todos.push_back(Todo::parse_line(line));
     }
 
     return todos;
@@ -45,35 +65,6 @@ void save_todos(const std::vector<Todo> &todos) {
 
 void print_todos(const std::vector<Todo> &todos, std::ostream &os) {
     for (auto &t : todos) {
-        os << t;
+        os << t.dump() << '\n';
     }
-}
-
-void add_todo(std::vector<Todo> &todos, const std::string &summary) {
-    Todo new_todo{summary, TodoStatus::PENDING};
-    todos.emplace_back(new_todo);
-}
-
-void remove_todo(std::vector<Todo> &todos, size_t id) {
-    size_t i = 0;
-
-    for (auto it = todos.begin(); it != todos.end(); it++, i++) {
-        if (i == id) {
-            todos.erase(it);
-            break;
-        }
-    }
-}
-
-void edit_todo(std::vector<Todo> &todos, size_t id,
-               const std::string &new_summary) {
-    todos[id].summary = new_summary;
-}
-
-void mark_todo_done(std::vector<Todo> &todos, size_t id) {
-    todos[id].status = TodoStatus::DONE;
-}
-
-void mark_todo_doing(std::vector<Todo> &todos, size_t id) {
-    todos[id].status = TodoStatus::DOING;
 }

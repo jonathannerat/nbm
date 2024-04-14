@@ -1,10 +1,11 @@
+#include <algorithm>
 #include <string>
 #include <vector>
 
 #include "todo.hpp"
 
 int main(int argc, char **argv) {
-    std::vector<Todo> todos(load_todos());
+    std::vector<Todo> todos = load_todos();
 
     if (argc == 1) {
         print_todos(todos);
@@ -12,19 +13,25 @@ int main(int argc, char **argv) {
         std::string_view command(argv[1]);
 
         if (command == "add") {
-            add_todo(todos, argv[2]);
+            todos.emplace_back(Todo(argv[2]));
         } else {
             size_t id = static_cast<size_t>(std::stoi(argv[2]));
-            Todo &t = todos[id];
+            auto it = std::find_if(todos.begin(), todos.end(),
+                                   [id](const Todo &t) { return t.id() == id; });
+
+            if (it == todos.end()) {
+                std::cerr << "Couldn't find todo for id: " << id << std::endl;
+                exit(EXIT_FAILURE);
+            }
 
             if (command == "remove") {
-                remove_todo(todos, id);
+                todos.erase(it);
             } else if (command == "edit") {
-                edit_todo(todos, id, argv[3]);
+                it->set_summary(argv[3]);
             } else if (command == "done") {
-                mark_todo_done(todos, id);
-            } else if (command == "doing") {
-                mark_todo_doing(todos, id);
+                it->set_done();
+            } else if (command == "start") {
+                it->set_started();
             }
         }
 
