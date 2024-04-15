@@ -1,14 +1,12 @@
 #ifndef TODO_HPP
 #define TODO_HPP
 
-#include <fstream>
-#include <iostream>
+#include <set>
 #include <string>
-#include <vector>
 
 enum class TodoStatus : char {
-    PENDING = '_',
-    STARTED = 'O',
+    PENDING = ' ',
+    STARTED = '>',
     DONE = 'X',
 };
 
@@ -22,8 +20,11 @@ class Todo {
     bool is_pending() const;
     bool is_started() const;
     bool is_done() const;
+    const std::set<std::string> &tags() const;
 
     void set_summary(std::string);
+    bool tag(std::string);
+    bool untag(std::string);
 
   private:
     friend class TodoManager;
@@ -32,6 +33,7 @@ class Todo {
     size_t _id;
     std::string _summary;
     TodoStatus _status;
+    std::set<std::string> _tags;
 };
 
 #endif // TODO_HPP

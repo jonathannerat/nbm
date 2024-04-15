@@ -18,6 +18,7 @@ class TodoManager {
     void remove(size_t);
     void edit(size_t, std::string);
     void set_status(size_t, TodoStatus);
+    void apply_tags(size_t, std::vector<std::string>);
 
   private:
     std::string serialize(const Todo &) const;

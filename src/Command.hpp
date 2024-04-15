@@ -12,6 +12,7 @@ enum CommandType : uint8_t {
     EDIT,
     REMOVE,
     CHANGE_STATUS,
+    TAG,
 };
 
 class Command {
@@ -77,6 +78,18 @@ class ChangeStatusCommand : public Command {
         : Command(CommandType::CHANGE_STATUS), id(id), status(status) {}
     size_t id;
     TodoStatus status;
+};
+
+class TagCommand : public Command {
+  public:
+    static TagCommand *parse(int, char **);
+    void execute(TodoManager &) const;
+
+  private:
+    TagCommand(size_t id, std::vector<std::string> diff_tags)
+        : Command(CommandType::TAG), id(id), diff_tags(diff_tags) {}
+    size_t id;
+    std::vector<std::string> diff_tags;
 };
 
 #endif // COMMAND_HPP

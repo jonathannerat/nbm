@@ -3,7 +3,11 @@
 #include <exception>
 #include <fstream>
 #include <functional>
+#include <iostream>
+#include <ranges>
 #include <sstream>
+
+#include "utils.hpp"
 
 TodoManager::TodoManager(const std::string &path) : _path(path) {
     std::ifstream input(_path);
@@ -31,10 +35,14 @@ void TodoManager::save() const {
 }
 
 void TodoManager::list() const {
-    std::cout << "ToDo's:\n";
+    for (auto &t : _todos) {
+        std::cout << t._id << ". [" << static_cast<char>(t._status) << "] " << t._summary;
 
-    for (auto t : _todos) {
-        std::cout << t._id << ". [" << static_cast<char>(t._status) << "] " << t._summary << '\n';
+        auto tags = t.tags();
+        if (!tags.empty()) {
+            std::cout << " (" << join(tags.begin(), tags.end(), ' ') << ')';
+        }
+        std::cout << '\n';
     }
 }
 
@@ -71,20 +79,44 @@ void TodoManager::set_status(size_t id, TodoStatus status) {
     with_todo(_todos, id, [status](Todo &t) { t._status = status; });
 }
 
+void TodoManager::apply_tags(size_t id, std::vector<std::string> diff_tags) {
+    with_todo(_todos, id, [diff_tags](Todo &todo) {
+        for (auto &t : diff_tags) {
+            if (t[0] == '+') {
+                todo.tag(t.substr(1));
+            } else {
+                todo.untag(t.substr(1));
+            }
+        }
+    });
+}
+
 std::string TodoManager::serialize(const Todo &todo) const {
     std::stringstream ss;
 
-    ss << todo._id << ',' << static_cast<char>(todo._status) << ',' << todo._summary;
+    ss << todo._id << ',' << static_cast<char>(todo._status) << ',' << todo._summary << ',';
+
+    auto tags = todo.tags();
+    for (auto it = tags.begin(); it != tags.end(); it++) {
+        if (it != tags.begin())
+            ss << '.';
+
+        ss << *it;
+    }
 
     return ss.str();
 }
 
 Todo TodoManager::deserialize(const std::string &s) const {
-    size_t first_sep_index = s.find(',');
+    auto cols = split(s, ',');
 
-    size_t id = std::stoi(s.substr(0, first_sep_index));
-    TodoStatus status = static_cast<TodoStatus>(s[first_sep_index + 1]);
-    std::string summary = s.substr(first_sep_index + 3);
+    size_t id = std::stoul(cols[0]);
+    TodoStatus status = static_cast<TodoStatus>(cols[1][0]);
+    std::string summary = cols[2];
+    Todo todo = Todo(id, summary, status);
 
-    return Todo(id, summary, status);
+    for (auto &t : split(cols[3], '.'))
+        todo.tag(t);
+
+    return todo;
 }
