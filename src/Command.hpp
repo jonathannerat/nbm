@@ -2,33 +2,37 @@
 #define COMMAND_HPP
 
 #include <cstdint>
+#include <optional>
 #include <map>
+#include "options.hpp"
 
 #include "TodoManager.hpp"
 
-enum CommandType : uint8_t {
-    LIST = 0,
-    ADD,
-    EDIT,
-    REMOVE,
-    CHANGE_STATUS,
-    TAG,
-};
-
 class Command {
   public:
-    static const Command *parse(int, char **);
+    enum class Type : uint8_t {
+        LIST = 0,
+        ADD,
+        EDIT,
+        REMOVE,
+        CHANGE_STATUS,
+        TAG,
+        SIZE
+    };
 
+    static const Command *from(Args);
     virtual void execute(TodoManager &) const = 0;
 
   protected:
-    Command(CommandType type) : type(type) {}
-    CommandType type;
+    Command(Type type) : type(type) {}
+    Type type;
 
   private:
-    static CommandType resolve_type(std::string_view);
-    static std::map<std::string_view, CommandType> names;
+    static Type resolve_type(std::string_view);
+    static std::map<std::string_view, Type> names;
 };
+
+using CommandType = Command::Type;
 
 class ListCommand : public Command {
   public:
